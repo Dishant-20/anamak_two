@@ -1,4 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
 
 class PhoneNumberValidationScreen extends StatefulWidget {
   const PhoneNumberValidationScreen({super.key});
@@ -14,22 +17,27 @@ class _PhoneNumberValidationScreenState
   TextEditingController countryController = TextEditingController();
   //
 
+  var saveEnteredPhoneNumber = '';
+
   @override
   void initState() {
     countryController.text = "+91";
     super.initState();
+
+    //
+    // funcPhoneNumberFirebaseAuth();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'Phone Number',
         ),
       ),
       body: Container(
-        margin: EdgeInsets.only(left: 25, right: 25),
+        margin: const EdgeInsets.only(left: 25, right: 25),
         alignment: Alignment.center,
         child: SingleChildScrollView(
           child: Column(
@@ -57,10 +65,32 @@ class _PhoneNumberValidationScreenState
                 ),
                 textAlign: TextAlign.center,
               ),
-              SizedBox(
+              const SizedBox(
                 height: 30,
               ),
-              Container(
+              IntlPhoneField(
+                decoration: const InputDecoration(
+                  labelText: 'Phone Number',
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(),
+                  ),
+                ),
+                initialCountryCode: 'IN',
+                onChanged: (phone) {
+                  if (kDebugMode) {
+                    print('ok${phone.completeNumber}');
+                  }
+                  //
+                  saveEnteredPhoneNumber = phone.completeNumber;
+                  if (kDebugMode) {
+                    // print(save_entered_phone_number);
+                  }
+                  //
+                  //
+                },
+              ),
+
+              /*Container(
                 height: 55,
                 decoration: BoxDecoration(
                     border: Border.all(width: 1, color: Colors.grey),
@@ -68,7 +98,7 @@ class _PhoneNumberValidationScreenState
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    SizedBox(
+                    const SizedBox(
                       width: 10,
                     ),
                     SizedBox(
@@ -76,30 +106,42 @@ class _PhoneNumberValidationScreenState
                       child: TextField(
                         controller: countryController,
                         keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           border: InputBorder.none,
                         ),
                       ),
                     ),
-                    Text(
+                    const Text(
                       "|",
                       style: TextStyle(fontSize: 33, color: Colors.grey),
                     ),
-                    SizedBox(
+                    const SizedBox(
                       width: 10,
                     ),
-                    Expanded(
-                        child: TextField(
-                      keyboardType: TextInputType.phone,
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        hintText: "Phone",
+                    IntlPhoneField(
+                      decoration: const InputDecoration(
+                        labelText: 'Phone Number',
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(),
+                        ),
                       ),
-                    ))
+                      initialCountryCode: 'IN',
+                      onChanged: (phone) {
+                        if (kDebugMode) {
+                          print('ok${phone.completeNumber}');
+                        }
+                        //
+                        // save_entered_phone_number = phone.completeNumber;
+                        if (kDebugMode) {
+                          // print(save_entered_phone_number);
+                        }
+                        //
+                      },
+                    ),
                   ],
                 ),
-              ),
-              SizedBox(
+              ),*/
+              const SizedBox(
                 height: 20,
               ),
               SizedBox(
@@ -111,9 +153,15 @@ class _PhoneNumberValidationScreenState
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10))),
                   onPressed: () {
-                    Navigator.pushNamed(context, 'verify');
+                    // Navigator.pushNamed(context, 'verify');
+                    //
+                    if (kDebugMode) {
+                      print('phone number is =====>$saveEnteredPhoneNumber');
+                    }
+                    // funcValidatePhoneNumberViaFirebasePhoneAuth();
+                    //
                   },
-                  child: Text(
+                  child: const Text(
                     "Send the code",
                   ),
                 ),
@@ -124,4 +172,36 @@ class _PhoneNumberValidationScreenState
       ),
     );
   }
+
+  //
+  //
+  funcValidatePhoneNumberViaFirebasePhoneAuth() async {
+    await FirebaseAuth.instance.verifyPhoneNumber(
+      phoneNumber: saveEnteredPhoneNumber.toString(),
+      verificationCompleted: (PhoneAuthCredential credential) {
+        if (kDebugMode) {
+          print('VERIFICATION COMPLETE');
+        }
+      },
+      verificationFailed: (FirebaseAuthException e) {
+        if (kDebugMode) {
+          print('VERIFICATION FAILED');
+        }
+      },
+      codeSent: (String verificationId, int? resendToken) {
+        if (kDebugMode) {
+          print('VERIFICATION ID=====> $verificationId');
+          print('RESENT TOKEN =======> $resendToken');
+        }
+      },
+      codeAutoRetrievalTimeout: (String verificationId) {
+        if (kDebugMode) {
+          // print('TIME OUT');
+          print('VERIFICATION ID=====> $verificationId');
+        }
+      },
+    );
+  }
+  //
+  //
 }
